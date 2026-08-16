@@ -1,0 +1,83 @@
+{
+  "description": "Fixed, human-labelled test cases for the Screener agent. All companies and postings here are invented for testing, not real leads. Each case has a reference recommendation and score band a person judged in advance, so a Screener prompt change can be checked against a known-good answer rather than trusting a new run's output on faith.",
+  "cases": [
+    {
+      "id": "clear_match_1",
+      "why": "Close match on level, domain, and the specific skills the CV is strongest on (vendor management, RFP, hiring, remote-distributed team leadership).",
+      "lead": {
+        "type": "job",
+        "name": "Fixture Co A",
+        "title_or_topic": "Engineering Manager, Platform",
+        "location": "Remote, EU",
+        "link": "https://example.com/fixtures/fixture-co-a",
+        "note": "B2B SaaS company, team of 8 engineers, role explicitly covers vendor management, hiring, and stakeholder management alongside technical direction."
+      },
+      "reference": { "recommendation": "proceed", "min_score": 4, "max_score": 5 }
+    },
+    {
+      "id": "clear_match_2",
+      "why": "Strong overlap on coaching, cross-functional collaboration, and hands-on technical credibility.",
+      "lead": {
+        "type": "job",
+        "name": "Fixture Co B",
+        "title_or_topic": "Engineering Manager",
+        "location": "Remote, EU",
+        "link": "https://example.com/fixtures/fixture-co-b",
+        "note": "Looking for someone who coaches engineers toward independent ownership, stays hands-on with code, and works closely with product and delivery stakeholders."
+      },
+      "reference": { "recommendation": "proceed", "min_score": 4, "max_score": 5 }
+    },
+    {
+      "id": "clear_non_match_1",
+      "why": "Individual contributor role at a seniority and specialism the CV doesn't claim, on-site only.",
+      "lead": {
+        "type": "job",
+        "name": "Fixture Co C",
+        "title_or_topic": "Staff Backend Engineer, Distributed Systems",
+        "location": "On-site, Berlin only, no remote option",
+        "link": "https://example.com/fixtures/fixture-co-c",
+        "note": "Requires 10+ years of deep distributed systems and database internals experience. Individual contributor role, no management scope."
+      },
+      "reference": { "recommendation": "reject", "min_score": 1, "max_score": 2 }
+    },
+    {
+      "id": "clear_non_match_2",
+      "why": "Completely different domain, not an engineering role at all.",
+      "lead": {
+        "type": "job",
+        "name": "Fixture Co D",
+        "title_or_topic": "Marketing Manager",
+        "location": "Remote, EU",
+        "link": "https://example.com/fixtures/fixture-co-d",
+        "note": "Owns brand strategy, campaign planning, and marketing team leadership. No technical or engineering scope."
+      },
+      "reference": { "recommendation": "reject", "min_score": 1, "max_score": 2 }
+    },
+    {
+      "id": "ambiguous_ml_gap",
+      "why": "Right level and people-leadership scope, but the core technical domain (ML/data engineering) isn't something the CV supports, so this should read as a genuine gap rather than a clean yes or no.",
+      "lead": {
+        "type": "job",
+        "name": "Fixture Co E",
+        "title_or_topic": "Engineering Manager, ML Platform",
+        "location": "Remote, EU",
+        "link": "https://example.com/fixtures/fixture-co-e",
+        "note": "Leads a team of ML engineers. Requires deep hands-on experience with ML infrastructure, model deployment, and data pipelines."
+      },
+      "reference": { "recommendation": "hold", "min_score": 2, "max_score": 3, "expected_gap_keyword": "ML" }
+    },
+    {
+      "id": "ambiguous_scope_step_up",
+      "why": "A real step up in scope (Director-level, larger org) rather than a clean lateral EM move - should read as genuinely uncertain, not an automatic yes.",
+      "lead": {
+        "type": "job",
+        "name": "Fixture Co F",
+        "title_or_topic": "Director of Engineering",
+        "location": "Remote, EU",
+        "link": "https://example.com/fixtures/fixture-co-f",
+        "note": "Owns engineering strategy across four teams and roughly 40 engineers, reporting directly to the CTO."
+      },
+      "reference": { "recommendation": "hold", "min_score": 2, "max_score": 3 }
+    }
+  ]
+}
