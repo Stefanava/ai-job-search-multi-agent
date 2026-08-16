@@ -1,0 +1,12 @@
+{
+  "scale": "fit_score is an integer from 1 (poor fit) to 5 (strong fit)",
+  "fields": {
+    "fit_score": "integer 1-5",
+    "matched_signals": "specific things from the retrieved CV/cover-letter context that genuinely support this being a good match - no vague claims",
+    "gaps": "specific things the role asks for that the retrieved context does not support, including flags a human should weigh (e.g. visa/entity unclear, seniority mismatch)",
+    "recommendation": "one of proceed | hold | reject",
+    "rationale": "1-3 sentences, must reference what was actually retrieved, never invent detail about the role or the candidate"
+  },
+  "advisory_only": "The Screener's recommendation is a suggestion, not a decision. It never changes a lead's status or removes anything from the pipeline itself - every lead it scores goes into the human review step (src/review.js), and a person decides what happens next. This is deliberate: a system that quietly filtered its own job search without showing what it excluded and why would be trusting an AI system's output further than it's earned.",
+  "notes_for_editing": "Edit this file to change how the Screener scores fit without touching code, same pattern as config/criteria.json."
+}

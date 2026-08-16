@@ -1,0 +1,36 @@
+{
+  "role_titles": [
+    "Engineering Manager",
+    "Head of Engineering",
+    "Engineering Lead"
+  ],
+  "location_rules": {
+    "remote_first": "always allowed",
+    "barcelona": "allowed ONLY if the employing legal entity is non-Spanish",
+    "why": "Spain's Digital Nomad Visa requires a NON-SPANISH employer. A Barcelona role employed via a Spanish entity breaks visa eligibility outright. If the entity isn't clear from the listing, flag it - never silently include or silently drop it."
+  },
+  "compensation_floor": {
+    "gbp": null,
+    "eur": null,
+    "rule": "include if unstated; include if above floor; exclude only if a stated figure is clearly and substantially below it",
+    "note": "Left blank in the committed version - this is a real negotiating position, not something to publish. Set your own numbers in a local, uncommitted edit."
+  },
+  "job_sources": [
+    "relocate.me",
+    "wellfound.com",
+    "himalayas.app"
+  ],
+  "meetup_sources": [
+    "meetup.com",
+    "eventbrite.com"
+  ],
+  "meetup_locations": [
+    "London"
+  ],
+  "meetup_topics": [
+    "AI / agentic tooling",
+    "engineering leadership",
+    "tech networking"
+  ],
+  "notes_for_editing": "This file is the whole point of extending the agent without touching code. Add/remove sources, adjust the comp floor, or add new role titles here."
+}
