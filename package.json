@@ -1,0 +1,18 @@
+{
+  "name": "ai-job-search-multi-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Multi-agent (Orchestrator/Researcher/Writer/Critic) evolution of ai-job-search-agent. See PRD.md.",
+  "main": "src/run.js",
+  "scripts": {
+    "scan": "node --env-file=.env src/scan.js",
+    "review": "node --env-file=.env src/review.js",
+    "draft": "node --env-file=.env src/draft.js",
+    "eval:screener": "node --env-file=.env evals/run_screener_eval.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "mammoth": "latest"
+  }
+}
