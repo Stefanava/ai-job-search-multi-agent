@@ -68,7 +68,7 @@ the short version: the Writer step genuinely depends on the Researcher's output,
 loop needs a coordinator, so it's the pattern actually earning its complexity here, not orchestration for
 its own sake.
 
-## Retrieval, honestly
+## Retrieval
 
 `retrieve_context` uses [Voyage AI](https://voyageai.com) (Anthropic's recommended embeddings provider —
 Claude itself has no embeddings endpoint) for real semantic search, with an in-memory array of chunks, not
@@ -134,7 +134,7 @@ doesn't need, a self-critique/retry loop, per-agent cost/latency observability, 
 the-loop gate on the one step (deciding a lead's fate) that shouldn't be fully automated even when it could
 be — plus a small eval suite so that gate's own judgement can be checked, not just trusted.
 
-## Honest open questions (per PRD §10 — worth having answers ready for, not hiding)
+## Open questions (per PRD §10)
 
 - **Cost multiplication.** Four chained agent calls per lead (Researcher, Screener, Writer, Critic) cost
   more than the single-agent version. `data/run_log.jsonl` + the final digest's cost line exist specifically
