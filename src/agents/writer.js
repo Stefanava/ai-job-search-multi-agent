@@ -3,7 +3,7 @@
 // touches leads.json/excluded_companies.json directly - it only sees the
 // one lead the Orchestrator hands it.
 
-import { toolDefinitions, handleToolCall } from "../shared/tools.js";
+import { toolDefinitions, handleToolCall as defaultHandleToolCall } from "../shared/tools.js";
 import { runToolLoop } from "../shared/claude.js";
 import { logEvent } from "../shared/logger.js";
 
@@ -30,12 +30,15 @@ Rules:
   }`;
 }
 
-export async function runWriter(lead, feedback = null) {
+// handleToolCall is overridable for the same reason as runResearcher's - see
+// its comment. Real usage (via orchestrator.js) never passes this.
+export async function runWriter(lead, feedback = null, { handleToolCall: customHandleToolCall } = {}) {
+  const baseHandleToolCall = customHandleToolCall || defaultHandleToolCall;
   const userPrompt = `Draft outreach for this lead:\n${JSON.stringify(lead, null, 2)}`;
 
   const savedDrafts = [];
   const wrappedHandler = async (name, input) => {
-    const result = await handleToolCall(name, input);
+    const result = await baseHandleToolCall(name, input);
     if (name === "save_draft" && result?.saved) savedDrafts.push(result.draft);
     return result;
   };

@@ -12,3 +12,4 @@ data/run_log.jsonl
 context/*
 !context/README.md
 !context/example/
+evals/results/

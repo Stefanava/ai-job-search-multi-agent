@@ -7,12 +7,15 @@
   "main": "src/run.js",
   "scripts": {
     "scan": "node --env-file=.env src/scan.js",
+    "scan:jobs-only": "node --env-file=.env src/scan.js --jobs-only",
     "review": "node --env-file=.env src/review.js",
     "draft": "node --env-file=.env src/draft.js",
-    "eval:screener": "node --env-file=.env evals/run_screener_eval.js"
+    "eval:screener": "node --env-file=.env evals/run_screener_eval.js",
+    "eval:compensation": "node --env-file=.env evals/run_compensation_eval.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "latest",
-    "mammoth": "latest"
+    "mammoth": "latest",
+    "nodemailer": "latest"
   }
 }

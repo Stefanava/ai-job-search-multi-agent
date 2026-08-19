@@ -58,9 +58,14 @@ src/
   review.js           Phase 2: human approve/reject/hold, interactive CLI
   draft.js            Phase 3: Writer/Critic loop on approved leads only
   run.js              Retired - points to the three scripts above
+  evalQuery.js        Per-query entry point for ../build-vs-buy-eval's comparison only - see below
+  eval/evalTools.js    Isolated, in-memory tool state evalQuery.js uses instead of real data files
 evals/
-  cases.json           Fixed, human-labelled Screener test cases
-  run_screener_eval.js  Runs the Screener against them, reports agreement, never gates a build
+  cases.json                    Fixed, human-labelled Screener test cases
+  run_screener_eval.js          Runs the Screener against them, reports agreement, never gates a build
+  compensation_cases.json       Fixed, human-labelled test cases for the compensation-floor rule (fixture
+                                 floor, not the real one)
+  run_compensation_eval.js      Runs that rule in isolation against them, same never-gates-a-build stance
 ```
 
 See `PRD.md` §6 for why this is a supervisor pattern rather than a fixed pipeline or an event-driven swarm —
@@ -96,11 +101,49 @@ Or with a custom scan instruction:
 node --env-file=.env src/scan.js "Just check for new meetups in Barcelona this week, skip the job search"
 ```
 
+Or jobs only, excluding meetup search entirely (a hard prompt change, not a soft instruction - see
+`agents/researcher.js`'s `buildSystemPrompt`). This is the mode `build-vs-buy-eval` uses to run this
+project as Variant D, since the other variants are only ever scored on job queries:
+
+```bash
+npm run scan:jobs-only
+```
+
 Run the Screener eval any time (doesn't need real leads or a real API key beyond `ANTHROPIC_API_KEY`):
 
 ```bash
 npm run eval:screener
 ```
+
+Run the compensation-floor eval the same way — checks the `compensation_floor` rule in isolation against a
+fixed set of labelled fixture leads (fake floor numbers, not your real one — see Compensation floor below):
+
+```bash
+npm run eval:compensation
+```
+
+### Used as Variant D in build-vs-buy-eval
+
+`src/evalQuery.js` exports `runQuery(query, options)`, imported directly by
+`../build-vs-buy-eval/run_variant.js` so this project can be scored against the same 8 fixed queries as
+its single-agent variants, not just retroactively mapped onto a full weekly cycle's output. This is
+**not** how to use this project day to day - use `scan`/`review`/`draft` above for that. Worth knowing
+if you're reading this because a comparison run surprised you:
+
+- Every eval-mode query runs with its own isolated, in-memory tool state (`src/eval/evalTools.js`) -
+  leads and drafts from a comparison run are never written to `data/leads.json` or `data/drafts.json`.
+- `options.reviewMode` ("auto", the default, or "manual") controls how the one drafting decision this
+  path makes gets made. Auto approves whatever the Screener recommends "proceed" on, standing in for the
+  human review step (`npm run review`) real use always has - it measures the chained agents' own
+  judgement, not the full human-reviewed system. Manual (`npm run run:d:manual` from the build-vs-buy-eval
+  side) asks a real person via `src/eval/manualReview.js`, same call `npm run review` makes for real use,
+  just scoped to one lead inline. See `evalQuery.js`'s header comment for the full reasoning, and
+  `../build-vs-buy-eval/import_variant_d.js` for a supplementary way to capture a real, human-reviewed
+  run's cost/latency instead.
+- Every screened lead - not just approved ones - comes back under `screening` (`proceeded`/`held`/
+  `rejected`). Auto-mode runs use this to email a summary of what was rejected and what was "held" (close
+  to approval) once the run finishes - see `src/shared/mailer.js` and its config in `.env.example`
+  (SMTP, optional - skipped gracefully if unset, the summary still prints and saves to disk either way).
 
 ### Grounding drafts in your real CV
 
@@ -113,6 +156,10 @@ is gitignored — nothing there gets pushed). Until you do, the Screener and Wri
 `config/criteria.json`'s `compensation_floor` ships blank (`null`/`null`) in this repo on purpose — it's a
 real negotiating position, not something to publish in a public git history. Set your own numbers in a
 local, uncommitted edit if you want the Researcher to weigh compensation.
+
+This rule is never enforced in code — the whole `criteria.json` object is dumped into the Researcher's
+system prompt as text, and the model is trusted to apply the rule correctly. `npm run eval:compensation`
+exists to check that trust is warranted, on a fixture floor, without needing your real numbers anywhere.
 
 ## Data files (gitignored — real pipeline data, never committed)
 
