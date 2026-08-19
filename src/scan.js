@@ -10,19 +10,32 @@
 //
 // Usage:
 //   node --env-file=.env src/scan.js
+//   node --env-file=.env src/scan.js --jobs-only
 //   node --env-file=.env src/scan.js "custom research instruction"
+//   node --env-file=.env src/scan.js "custom research instruction" --jobs-only
+//
+// --jobs-only excludes meetup search entirely (not just soft-discouraged -
+// see agents/researcher.js's buildSystemPrompt). Built for running this
+// project as Variant D in the build-vs-buy comparison, where the other
+// variants are only ever scored on job queries.
 
 import { runResearcher } from "./agents/researcher.js";
 import { runScreener } from "./agents/screener.js";
 import { getLeadsByStatus, updateLeadStatus } from "./shared/tools.js";
 
-const prompt =
-  process.argv[2] ||
-  "Run this week's job search scan: find new Engineering Manager leads and relevant meetups, per the configured criteria.";
+const args = process.argv.slice(2);
+const jobsOnly = args.includes("--jobs-only");
+const customPrompt = args.find((a) => a !== "--jobs-only");
+
+const defaultPrompt = jobsOnly
+  ? "Run this week's job search scan: find new Engineering Manager leads matching the configured criteria."
+  : "Run this week's job search scan: find new Engineering Manager leads and relevant meetups, per the configured criteria.";
+
+const prompt = customPrompt || defaultPrompt;
 
 async function main() {
-  console.log("=== Researcher ===");
-  const { newLeads, summary } = await runResearcher(prompt);
+  console.log(`=== Researcher${jobsOnly ? " (jobs only)" : ""} ===`);
+  const { newLeads, summary } = await runResearcher(prompt, { jobsOnly });
   console.log(summary || `Saved ${newLeads.length} new lead(s).`);
 
   const toScreen = getLeadsByStatus("pending_screen");

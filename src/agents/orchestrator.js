@@ -20,11 +20,16 @@ import { summarizeRunLog } from "../shared/logger.js";
 
 const MAX_RETRIES = 2; // 1 initial attempt + up to 2 retries, per PRD's cost cap
 
-async function writeAndCritique(lead) {
+// Exported (in addition to orchestrate) so src/evalQuery.js can run this
+// same retry loop on a single lead for a per-query eval call, without
+// duplicating it. options.handleToolCall lets evalQuery.js pass isolated,
+// in-memory tool state - see runWriter's comment in writer.js. Real usage
+// via orchestrate() below never passes options, so it's unaffected.
+export async function writeAndCritique(lead, options = {}) {
   let feedback = null;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const draft = await runWriter(lead, feedback);
+    const draft = await runWriter(lead, feedback, options);
     if (!draft) {
       console.warn(`[orchestrator] Writer produced no draft for "${lead.name}" - skipping.`);
       return { draft: null, score: null };
