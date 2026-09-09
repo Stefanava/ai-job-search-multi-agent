@@ -7,7 +7,8 @@
   "location_rules": {
     "remote_first": "always allowed",
     "barcelona": "allowed ONLY if the employing legal entity is non-Spanish",
-    "why": "Spain's Digital Nomad Visa requires a NON-SPANISH employer. A Barcelona role employed via a Spanish entity breaks visa eligibility outright. If the entity isn't clear from the listing, flag it - never silently include or silently drop it."
+    "europe_wider": "allowed if the role is based anywhere else in Europe (not just Barcelona) AND the company plausibly supports hiring in the UK now with a later transfer to that office - an internal relocation with the same employer, not a Digital Nomad Visa arrangement. A posting for a specific office that gives no indication of entertaining 'hire in UK, move later' should be flagged for human confirmation, not assumed to support it or silently dropped.",
+    "why": "Spain's Digital Nomad Visa requires a NON-SPANISH employer. A Barcelona role employed via a Spanish entity breaks visa eligibility outright. If the entity isn't clear from the listing, flag it - never silently include or silently drop it. The europe_wider rule is a separate, later addition (31 Aug) - it runs alongside the Barcelona/DNV plan, not instead of it."
   },
   "compensation_floor": {
     "gbp": null,
