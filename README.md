@@ -26,7 +26,7 @@ anywhere automatically**, and no lead is ever screened out of the pipeline witho
 
 ## Why three phases instead of one
 
-The original design had an Orchestrator make one autonomous routing call — "of this run's new leads, which
+The original design had an LLM Orchestrator make one autonomous routing call — "of this run's new leads, which
 are worth drafting outreach for?" — with no check on that decision before Writer/Critic spent real API cost
 acting on it. That's a system quietly filtering its own job search: leads it decided weren't worth drafting
 for would simply never surface again, with no record of what was excluded or why.
@@ -53,10 +53,10 @@ src/
     screener.js      Scores each new job lead's fit against the real CV, advisory only
     writer.js        Drafts outreach for approved leads
     critic.js         Scores drafts against a rubric, structured JSON output, no tools
-    orchestrator.js   The Writer/Critic retry loop only - runs solely on leads a human already approved
   scan.js             Phase 1: Researcher -> Screener
   review.js           Phase 2: human approve/reject/hold, interactive CLI
   draft.js            Phase 3: Writer/Critic loop on approved leads only
+  draftLoop.js        The Writer -> Critic retry loop itself (plain code, no model call of its own)
   run.js              Retired - points to the three scripts above
   evalQuery.js        Per-query entry point for ../build-vs-buy-eval's comparison only - see below
   eval/evalTools.js    Isolated, in-memory tool state evalQuery.js uses instead of real data files
@@ -68,10 +68,23 @@ evals/
   run_compensation_eval.js      Runs that rule in isolation against them, same never-gates-a-build stance
 ```
 
-See `PRD.md` §6 for why this is a supervisor pattern rather than a fixed pipeline or an event-driven swarm —
-the short version: the Writer step genuinely depends on the Researcher's output, and the Critic's retry
-loop needs a coordinator, so it's the pattern actually earning its complexity here, not orchestration for
-its own sake.
+## How the steps are coordinated
+
+There's no orchestrator agent. `PRD.md` §6 originally chose a supervisor pattern, with an LLM Orchestrator
+deciding at run time which leads to send on to the Writer. That routing call was the decision where a silent
+mistake cost the most, so it moved to a human (see "Why three phases instead of one" above), and with it
+gone there was nothing left for a model to route. Coordination is now ordinary code:
+
+| Step | What decides what happens next |
+|---|---|
+| Researcher → Screener | `src/scan.js`: screen every lead the Researcher saved |
+| Which leads get drafted | You, in `src/review.js` |
+| Writer ↔ Critic retries | `src/draftLoop.js`: retry with the Critic's feedback, at most twice |
+
+Each lead's `status` field (`pending_screen` → `pending_review` → `approved_for_draft`) carries the state
+between those steps. So strictly this is a code-orchestrated workflow with two agentic steps, the
+Researcher's search loop and the Writer's drafting loop, plus two single-call judges (Screener and Critic).
+The model owns the parts that need judgement, and code and a person own the control flow.
 
 ## Retrieval
 
@@ -168,14 +181,15 @@ exists to check that trust is warranted, on a fixture floor, without needing you
   keyed by each lead's `link`.
 - **`data/drafts.json`** — every draft the Writer produces, pass or fail, with its `status`. Starts empty.
 - **`data/run_log.jsonl`** — one JSON line per model call across every agent: tokens, cost, latency, which
-  tools were called. This is what `orchestrate()`'s final digest sums for the per-run cost line.
+  tools were called. This is what `draftApprovedLeads()`'s final digest (in `src/draftLoop.js`) sums for the per-run cost line.
 
 Fake stand-ins with the same shape ship in the repo so it's runnable out of the box:
 `data/excluded_companies.example.json`, `context/example/cv.md`.
 
 ## What this demonstrates (per PRD §11)
 
-Multi-agent orchestration with a documented rationale for the pattern chosen, tool design across multiple
+Multi-agent design with a documented rationale for how the agents are coordinated (and why that moved from an
+LLM to code and a human), tool design across multiple
 cooperating agents, retrieval-augmented generation at a scale that doesn't reach for infrastructure it
 doesn't need, a self-critique/retry loop, per-agent cost/latency observability, and an explicit human-in-
 the-loop gate on the one step (deciding a lead's fate) that shouldn't be fully automated even when it could

@@ -1,5 +1,5 @@
 // Retired. This used to be the single entry point, running Researcher then
-// an autonomous Orchestrator selection then Writer/Critic in one unattended
+// an autonomous LLM Orchestrator selection then Writer/Critic in one unattended
 // pass. It's been replaced by three explicit phases with a human review gate
 // in between - see README.md for why:
 //

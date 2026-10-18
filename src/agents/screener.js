@@ -6,7 +6,7 @@
 //
 // Its recommendation is advisory only (see config/screener_rubric.json). It
 // never changes a lead's status itself - that only happens in the human
-// review step (src/review.js). This replaces the Orchestrator's old
+// review step (src/review.js). This replaces the old LLM Orchestrator's
 // selectLeadsForDrafting call, which made that decision autonomously in one
 // LLM call with no human check before Writer/Critic spent real API cost on
 // whatever it selected.

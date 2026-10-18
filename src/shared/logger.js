@@ -12,13 +12,20 @@ const LOG_PATH = path.join(__dirname, "..", "..", "data", "run_log.jsonl");
 // $ per million tokens. These drift - check platform.claude.com/docs/en/pricing
 // before trusting this for anything beyond a rough per-run estimate.
 const PRICING = {
-  "claude-sonnet-5": { input: 3, output: 15 },
+  "claude-sonnet-5": { input: 2, output: 10 },
 };
+
+// Web search is billed per search on top of tokens ($10 per 1,000). The
+// search results themselves also land in input_tokens, which is already
+// counted above - this is only the per-search fee.
+const WEB_SEARCH_PRICE_PER_REQUEST = 10 / 1000;
 
 export function logEvent(event) {
   const price = PRICING[event.model] || { input: 0, output: 0 };
   const costUsd =
-    (event.input_tokens / 1_000_000) * price.input + (event.output_tokens / 1_000_000) * price.output;
+    (event.input_tokens / 1_000_000) * price.input +
+    (event.output_tokens / 1_000_000) * price.output +
+    (event.web_search_requests || 0) * WEB_SEARCH_PRICE_PER_REQUEST;
 
   const line = {
     timestamp: new Date().toISOString(),

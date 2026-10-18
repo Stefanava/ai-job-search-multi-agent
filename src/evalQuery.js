@@ -66,7 +66,7 @@
 
 import { runResearcher } from "./agents/researcher.js";
 import { runScreener } from "./agents/screener.js";
-import { writeAndCritique } from "./agents/orchestrator.js";
+import { writeAndCritique } from "./draftLoop.js";
 import { createEvalTools } from "./eval/evalTools.js";
 import { askHumanToApprove } from "./eval/manualReview.js";
 import { summarizeRunLog } from "./shared/logger.js";
@@ -87,7 +87,7 @@ export async function runQuery(query, { reviewMode = "auto" } = {}) {
     // fixed_queries.json's fixed_lead uses company/role field names (matching
     // Variant B/C's own lead schema); this project's leads use name/
     // title_or_topic instead (see shared/tools.js). Normalized here so the
-    // Writer sees the same lead shape it always does, and so orchestrator.js's
+    // Writer sees the same lead shape it always does, and so draftLoop.js's
     // console logging (which reads lead.name) doesn't print "undefined".
     const normalizedLead = {
       type: "job",

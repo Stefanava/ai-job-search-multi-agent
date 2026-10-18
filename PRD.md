@@ -75,6 +75,15 @@ Three ways to coordinate the agents were considered. This is included because "w
 
 **Decision:** Supervisor pattern. It's the canonical multi-agent pattern, genuinely necessary here (the Writer step depends on Researcher's output; the Critic step depends on Writer's), and is complex enough to be a real interview story without being complex for no defensible reason.
 
+**Update (built system):** the supervisor didn't survive contact with the build. Its one real routing
+decision, which leads deserve Writer/Critic effort, was replaced by an advisory Screener plus a human review
+step (see the Phase 6 status update in Section 8). With nothing left for an LLM to route, coordination moved
+into plain code (`src/scan.js`, `src/review.js`, `src/draft.js`, and the Writer/Critic retry loop in
+`src/draftLoop.js`), with each lead's status field carrying state between steps. In this matrix's terms the
+built system is closer to the sequential pipeline row, plus a human gate and a bounded retry loop. That's a
+deliberate move toward the more debuggable, more deterministic option once it was clear the dynamic routing
+wasn't earning its keep. See `README.md`'s "How the steps are coordinated".
+
 ## 7. New Tools Required
 
 - **`retrieve_context(query)`** — chunks `CV.docx` and past cover letters into paragraphs, embeds them (via an embeddings API call), does cosine-similarity search against the query, returns top-N chunks. No vector DB — an in-memory array is sufficient at this corpus size, and says so explicitly if asked in an interview why nothing heavier was used.
