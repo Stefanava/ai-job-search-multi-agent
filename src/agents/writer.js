@@ -1,7 +1,7 @@
 // PRD Phase 3: the Writer agent - given a specific lead, retrieves relevant
 // CV/cover-letter context and drafts a tailored outreach paragraph. Never
 // touches leads.json/excluded_companies.json directly - it only sees the
-// one lead the Orchestrator hands it.
+// one lead src/draftLoop.js hands it.
 
 import { toolDefinitions, handleToolCall as defaultHandleToolCall } from "../shared/tools.js";
 import { runToolLoop } from "../shared/claude.js";
@@ -31,7 +31,7 @@ Rules:
 }
 
 // handleToolCall is overridable for the same reason as runResearcher's - see
-// its comment. Real usage (via orchestrator.js) never passes this.
+// its comment. Real usage (via src/draftLoop.js) never passes this.
 export async function runWriter(lead, feedback = null, { handleToolCall: customHandleToolCall } = {}) {
   const baseHandleToolCall = customHandleToolCall || defaultHandleToolCall;
   const userPrompt = `Draft outreach for this lead:\n${JSON.stringify(lead, null, 2)}`;

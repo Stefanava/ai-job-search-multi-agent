@@ -1,11 +1,11 @@
 // Phase 3 of 3: run the Writer -> Critic loop, but only on leads a human
-// already approved in src/review.js. See src/agents/orchestrator.js's
-// header comment for why the Orchestrator no longer decides this itself.
+// already approved in src/review.js. See src/draftLoop.js's header comment
+// for why no model decides which leads get drafted.
 //
 // Usage:
 //   node --env-file=.env src/draft.js
 
-import { orchestrate } from "./agents/orchestrator.js";
+import { draftApprovedLeads } from "./draftLoop.js";
 import { getLeadsByStatus } from "./shared/tools.js";
 
 async function main() {
@@ -17,7 +17,7 @@ async function main() {
   }
 
   console.log(`Drafting outreach for ${approved.length} approved lead(s)...`);
-  await orchestrate(approved);
+  await draftApprovedLeads(approved);
 }
 
 main().catch((err) => {

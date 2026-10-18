@@ -1,49 +1,51 @@
-// The Orchestrator now only runs the Writer -> Critic retry loop, and only
-// on leads a human has already approved in the review step. It no longer
-// makes an autonomous routing decision (the old selectLeadsForDrafting) -
-// that call used to decide, in one unattended LLM call, which leads were
-// worth spending Writer/Critic cost on. It's been replaced by the Screener
-// (src/agents/screener.js) plus an explicit human review step (src/review.js)
-// between finding leads and drafting outreach for them. See README.md for
-// why: an LLM deciding on its own which leads matter, with nothing checking
-// that decision before real work happened on the back of it, is exactly the
-// kind of thing worth not trusting further than it's earned.
+// The Writer -> Critic retry loop, run only on leads a human has already
+// approved in the review step. Plain code, no model call of its own: it
+// runs the Writer, has the Critic score the draft, and retries with the
+// Critic's feedback up to MAX_RETRIES times.
 //
-// Lead discovery (the old runResearcher call here) has also moved out, into
-// src/scan.js alongside the Screener - there's no real decision between
-// "find leads" and "screen the leads you found," so that phase is plain
-// code now, not another agent loop.
+// This file used to be src/agents/orchestrator.js, when an LLM Orchestrator
+// coordinated the whole run: it called the Researcher, then made one
+// unattended routing call (selectLeadsForDrafting) deciding which leads were
+// worth spending Writer/Critic cost on. That routing call was the decision
+// most worth not trusting further than it's earned, so it's been replaced by
+// the Screener (src/agents/screener.js, advisory only) plus an explicit human
+// review step (src/review.js). Lead discovery moved into src/scan.js
+// alongside the Screener, since there's no real decision between "find
+// leads" and "screen the leads you found". With no routing left for a model
+// to make, coordination is now ordinary code across scan.js, review.js and
+// draft.js, with each lead's status field carrying the state between them
+// (see README.md's "How the steps are coordinated").
 
-import { runWriter } from "./writer.js";
-import { runCritic } from "./critic.js";
-import { summarizeRunLog } from "../shared/logger.js";
+import { runWriter } from "./agents/writer.js";
+import { runCritic } from "./agents/critic.js";
+import { summarizeRunLog } from "./shared/logger.js";
 
 const MAX_RETRIES = 2; // 1 initial attempt + up to 2 retries, per PRD's cost cap
 
-// Exported (in addition to orchestrate) so src/evalQuery.js can run this
+// Exported (in addition to draftApprovedLeads) so src/evalQuery.js can run this
 // same retry loop on a single lead for a per-query eval call, without
 // duplicating it. options.handleToolCall lets evalQuery.js pass isolated,
 // in-memory tool state - see runWriter's comment in writer.js. Real usage
-// via orchestrate() below never passes options, so it's unaffected.
+// via draftApprovedLeads() below never passes options, so it's unaffected.
 export async function writeAndCritique(lead, options = {}) {
   let feedback = null;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const draft = await runWriter(lead, feedback, options);
     if (!draft) {
-      console.warn(`[orchestrator] Writer produced no draft for "${lead.name}" - skipping.`);
+      console.warn(`[draft-loop] Writer produced no draft for "${lead.name}" - skipping.`);
       return { draft: null, score: null };
     }
 
     const score = await runCritic(lead, draft.draft_text);
 
     if (score.pass) {
-      console.log(`[orchestrator] Draft for "${lead.name}" passed review on attempt ${attempt + 1}.`);
+      console.log(`[draft-loop] Draft for "${lead.name}" passed review on attempt ${attempt + 1}.`);
       return { draft, score };
     }
 
     console.log(
-      `[orchestrator] Draft for "${lead.name}" failed review (attempt ${attempt + 1}/${MAX_RETRIES + 1}): ${score.feedback}`
+      `[draft-loop] Draft for "${lead.name}" failed review (attempt ${attempt + 1}/${MAX_RETRIES + 1}): ${score.feedback}`
     );
     feedback = score.feedback;
 
@@ -54,7 +56,7 @@ export async function writeAndCritique(lead, options = {}) {
 // approvedLeads: leads with status approved_for_draft, decided by a human
 // in src/review.js. This function trusts that approval and does not
 // re-evaluate it - see the file header for why that split exists.
-export async function orchestrate(approvedLeads) {
+export async function draftApprovedLeads(approvedLeads) {
   const runStartedAt = new Date().toISOString();
 
   const results = [];

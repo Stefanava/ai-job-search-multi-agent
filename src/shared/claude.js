@@ -2,7 +2,7 @@
 // ai-job-search-agent's original hand-rolled agent.js (PRD Phase 0) so
 // Researcher and Writer don't each carry their own copy of the same ~50
 // lines. Agents that make a single structured call instead of a loop
-// (Orchestrator's routing decision, Critic) call `client` directly and
+// (Screener, Critic) call `client` directly and
 // don't need this.
 
 import Anthropic from "@anthropic-ai/sdk";
@@ -40,6 +40,7 @@ export async function runToolLoop({
         model,
         input_tokens: response.usage.input_tokens,
         output_tokens: response.usage.output_tokens,
+        web_search_requests: response.usage.server_tool_use?.web_search_requests || 0,
         latency_ms: latencyMs,
         tool_calls: response.content.filter((b) => b.type === "tool_use").map((b) => b.name),
       });

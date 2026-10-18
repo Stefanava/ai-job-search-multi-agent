@@ -1,6 +1,6 @@
 // PRD Phase 4: the Critic agent - pure evaluation, no tools. Scores a draft
 // against the rubric from PRD section 7 and returns structured JSON so the
-// Orchestrator's retry loop can act on it programmatically rather than
+// draft loop (src/draftLoop.js) can act on it programmatically rather than
 // parsing prose.
 //
 // Deliberately a single call, not a tool-use loop: the Critic doesn't need

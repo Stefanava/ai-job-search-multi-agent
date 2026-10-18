@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Multi-agent (Orchestrator/Researcher/Writer/Critic) evolution of ai-job-search-agent. See PRD.md.",
+  "description": "Multi-agent (Researcher/Screener/Writer/Critic) evolution of ai-job-search-agent, coordinated by code with a human review gate. See README.md.",
   "main": "src/run.js",
   "scripts": {
     "scan": "node --env-file=.env src/scan.js",
