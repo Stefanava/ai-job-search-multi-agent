@@ -47,7 +47,7 @@ export async function runCritic(lead, draftText) {
   const start = Date.now();
   const response = await client.messages.parse({
     model: "claude-sonnet-5",
-    max_tokens: 1024,
+    max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: [
       {
@@ -67,6 +67,10 @@ export async function runCritic(lead, draftText) {
     latency_ms: latencyMs,
     tool_calls: [],
   });
+
+  if (!response.parsed_output) {
+    throw new Error(`Critic returned no structured output (stop_reason: ${response.stop_reason})`);
+  }
 
   return response.parsed_output;
 }

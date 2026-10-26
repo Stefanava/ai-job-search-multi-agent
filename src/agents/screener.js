@@ -51,7 +51,7 @@ export async function runScreener(lead) {
   const start = Date.now();
   const response = await client.messages.parse({
     model: "claude-sonnet-5",
-    max_tokens: 1024,
+    max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: [
       {
@@ -74,6 +74,10 @@ export async function runScreener(lead) {
     latency_ms: latencyMs,
     tool_calls: [],
   });
+
+  if (!response.parsed_output) {
+    throw new Error(`Screener returned no structured output (stop_reason: ${response.stop_reason})`);
+  }
 
   return { verdict: response.parsed_output, retrieved };
 }
