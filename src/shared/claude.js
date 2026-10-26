@@ -27,7 +27,7 @@ export async function runToolLoop({
     const start = Date.now();
     const response = await client.messages.create({
       model,
-      max_tokens: 4096,
+      max_tokens: 16000,
       system: systemPrompt,
       tools,
       messages,
@@ -59,7 +59,13 @@ export async function runToolLoop({
       }
     }
 
-    if (response.stop_reason !== "tool_use") {
+    // max_tokens means the reply was cut off, not finished: any complete tool
+    // calls in it still need running, and the model needs to carry on.
+    // Treating it as done silently dropped saves mid-run.
+    const truncated = response.stop_reason === "max_tokens";
+    if (truncated) console.warn(`\n[${agentName}] Reply hit max_tokens - continuing.`);
+
+    if (response.stop_reason !== "tool_use" && !truncated) {
       // "end_turn" (done) or "pause_turn" (long search - just resubmit as-is,
       // which happens naturally on the next loop iteration since `messages`
       // already has the paused turn appended).
@@ -70,7 +76,10 @@ export async function runToolLoop({
     // Only CLIENT tool_use blocks need a local handler - server_tool_use
     // (web_search) is already resolved inside response.content.
     const clientCalls = response.content.filter((b) => b.type === "tool_use");
-    if (clientCalls.length === 0) continue; // nothing for us to do this turn
+    if (clientCalls.length === 0) {
+      if (truncated) messages.push({ role: "user", content: "Your last reply was cut off by the output limit. Continue from where you stopped." });
+      continue;
+    }
 
     // Awaited even though most handlers are sync - retrieve_context calls an
     // embeddings API and is genuinely async, and awaiting a non-Promise
